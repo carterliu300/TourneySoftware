@@ -1,15 +1,15 @@
 package tourney;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
+import javax.swing.*;
 
 @SuppressWarnings("unused")
 public class Display extends JFrame {
@@ -21,8 +21,8 @@ public class Display extends JFrame {
 	public PlayerList tourneyList;
 	private int x = 50,
 			y = 100,
-			width = 300,
-			height = 400;
+			width = 500,
+			height = 600;
 
 	JFrame frame = new JFrame();
 	
@@ -40,7 +40,7 @@ public class Display extends JFrame {
 		frame.setTitle("Tourney");
 		frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		
-		frame.setLayout(new GridLayout(3,2));
+		frame.setLayout(new BorderLayout());
 		//frame.setBounds(x, y, width, height);
 		//frame.setVisible(true);
 		
@@ -62,14 +62,60 @@ public class Display extends JFrame {
 		 * GridLayout first goes down, then rearranges to go across once the vertical
 		 * threshold is exceeded
 		 */
-		JLabel label = new JLabel("Text here");
-		frame.add(label);
-		frame.add(new JTextField());
 		
-		frame.add(new JLabel("Text There"));
-		frame.add(new JTextField());
+		JPanel centrePanel = new JPanel(new GridLayout(3,2));
+		frame.add(centrePanel, BorderLayout.CENTER);
 		
-		frame.add(new JButton("Register"));
+		//Add first name input area and title
+		JLabel fName = new JLabel("First Name");
+		centrePanel.add(fName);
+		JTextField fField = new JTextField(10);
+		centrePanel.add(fField);
+		
+		//Add last name input area and title
+		JLabel lName = new JLabel("Last Name");
+		centrePanel.add(lName);
+		JTextField lField = new JTextField(10);
+		centrePanel.add(lField);
+		
+		//Output area for the tourney list
+		JTextArea output = new JTextArea(5, 15);
+		output.setEditable(false);
+		JScrollPane scrollArea = new JScrollPane(output);
+		frame.add(scrollArea, BorderLayout.EAST);
+		
+		//TODO: fix display area problem?
+		JButton register = new JButton("Register Player");
+		centrePanel.add(register);
+		JTextArea fullName = new JTextArea();
+		fullName.setEditable(false);
+		centrePanel.add(fullName);
+		register.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String firstName = fField.getText();
+				String lastName = lField.getText();
+				if (!firstName.isEmpty() && !lastName.isEmpty()){
+					fullName.setText(firstName + " " + lastName + " registered.");
+					tourneyList.AddPlayer(firstName, lastName);
+				}
+				else {
+					fullName.setText("Please enter something for first and last names, even"
+							+ " if it\'s just an empty space");
+				}
+			}
+			
+		});
+		
+		
+//		JLabel label = new JLabel("Text here");
+//		frame.add(label);
+//		frame.add(new JTextField());
+//		
+//		frame.add(new JLabel("Text There"));
+//		frame.add(new JTextField());
+//		
+//		frame.add(new JButton("Register"));
 		
 		//Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	    //frame.setBounds((int) screenSize.getWidth() - width, 0, width, height);
