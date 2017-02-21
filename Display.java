@@ -8,6 +8,7 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 import javax.swing.*;
 
@@ -23,19 +24,19 @@ public class Display extends JFrame {
 			y = 100,
 			width = 500,
 			height = 600;
-
+	private int fieldSize = 10;
 	JFrame frame = new JFrame();
 	
 	public Display(PlayerList list){
 		tourneyList = list;
-		DefaultSettings();
-		AddComponents();
-		SetCentre();
+		defaultSettings();
+		addComponents();
+		setCentre();
 		frame.pack();
 		frame.setVisible(true);
 	}
 	
-	public void DefaultSettings(){
+	public void defaultSettings(){
 		JFrame.setDefaultLookAndFeelDecorated(true);
 		frame.setTitle("Tourney");
 		frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -57,37 +58,55 @@ public class Display extends JFrame {
 		 */
 	}
 	
-	public void AddComponents(){
+	public void addComponents(){
 		/*
 		 * GridLayout first goes down, then rearranges to go across once the vertical
 		 * threshold is exceeded
 		 */
 		
-		JPanel centrePanel = new JPanel(new GridLayout(3,2));
+		JPanel centrePanel = new JPanel(new GridLayout(0,2));
 		frame.add(centrePanel, BorderLayout.CENTER);
+		
+
+		//Output area for the table pairings. In East panel
+		OutputArea output = new OutputArea(5, 4*fieldSize, tourneyList);
+		output.setEditable(false);
+		JScrollPane scrollArea = new JScrollPane(output);
+		frame.add(scrollArea, BorderLayout.EAST);
+		
+		//Output area for the list of participants. In West panel
+		JTextArea listOutput = new JTextArea(5, 2*fieldSize);
+		listOutput.setEditable(false);
+		JScrollPane listArea = new JScrollPane(listOutput);
+		frame.add(listArea, BorderLayout.WEST);
+		if (tourneyList.getSize() > 0){
+			listOutput.setText(tourneyList.printStringList());
+		}
+		
+		
+		//Output for errors. In south panel
+		JTextField errorPanel = new ErrorArea(tourneyList);
+		errorPanel.setEditable(false);
+		frame.add(errorPanel, BorderLayout.SOUTH);
+		
 		
 		//Add first name input area and title
 		JLabel fName = new JLabel("First Name");
 		centrePanel.add(fName);
-		JTextField fField = new JTextField(10);
+		JTextField fField = new JTextField(fieldSize);
 		centrePanel.add(fField);
 		
 		//Add last name input area and title
 		JLabel lName = new JLabel("Last Name");
 		centrePanel.add(lName);
-		JTextField lField = new JTextField(10);
+		JTextField lField = new JTextField(fieldSize);
 		centrePanel.add(lField);
 		
-		//Output area for the tourney list
-		JTextArea output = new JTextArea(5, 15);
-		output.setEditable(false);
-		JScrollPane scrollArea = new JScrollPane(output);
-		frame.add(scrollArea, BorderLayout.EAST);
+
 		
-		//TODO: fix display area problem?
 		JButton register = new JButton("Register Player");
 		centrePanel.add(register);
-		JTextArea fullName = new JTextArea();
+		JTextField fullName = new JTextField(fieldSize);
 		fullName.setEditable(false);
 		centrePanel.add(fullName);
 		register.addActionListener(new ActionListener(){
@@ -96,33 +115,103 @@ public class Display extends JFrame {
 				String firstName = fField.getText();
 				String lastName = lField.getText();
 				if (!firstName.isEmpty() && !lastName.isEmpty()){
-					fullName.setText(firstName + " " + lastName + " registered.");
-					tourneyList.AddPlayer(firstName, lastName);
+					//TODO: Code should be in PlayerList for ease of changes.
+					if (tourneyList.inSession()){fullName.setText("You're late!");}
+					else{fullName.setText("d(^ ^o)");}
+					
+					errorPanel.setText(firstName + " " + lastName + " registered.");
+					tourneyList.addPlayer(firstName, lastName);
+					fField.setText("");
+					lField.setText("");
 				}
 				else {
-					fullName.setText("Please enter something for first and last names, even"
-							+ " if it\'s just an empty space");
+					fullName.setText("-.-");
+					errorPanel.setText("Please enter something for"
+							+ " both first and last names, even if it's just a"
+							+ " space.");
+					
 				}
+				listOutput.setText(tourneyList.printStringList());
 			}
 			
 		});
 		
+		//TODO: What happens if a player is deleted during matches?
+		JButton delete = new JButton("Delete");
+		centrePanel.add(delete);
+		JTextField indexArea = new JTextField(fieldSize);
+		centrePanel.add(indexArea);
+		delete.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try{
+					int delIndex = Integer.parseInt(indexArea.getText());
+					if (delIndex >= 0 && delIndex < tourneyList.getSize()){
+						tourneyList.deletePlayer(delIndex);
+						listOutput.setText(tourneyList.printStringList());
+					}
+					else {
+						indexArea.setText("Within range pls");
+					}
+				}
+				catch(Exception e2){
+					indexArea.setText("Input player index here");
+				}
+			}});
 		
-//		JLabel label = new JLabel("Text here");
-//		frame.add(label);
-//		frame.add(new JTextField());
-//		
-//		frame.add(new JLabel("Text There"));
-//		frame.add(new JTextField());
-//		
-//		frame.add(new JButton("Register"));
+		
+		JButton pair = new JButton("Pair");
+		centrePanel.add(pair);
+		pair.addActionListener(new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tourneyList.setRounds();
+				delete.setText("Drop Out");
+			}
+			
+		});
+		
+		//Temporary, for testing purposes
+		JButton clearPairing = new JButton("Clear Pair");
+		centrePanel.add(clearPairing);
+		clearPairing.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				tourneyList.clearPairings();
+				delete.setText("Delete Player");
+			}
+		});
+		
+		JButton table = new JButton("Table No.");
+		JTextField tableField = new JTextField(fieldSize);
+		centrePanel.add(table);
+		centrePanel.add(tableField);
+		table.addActionListener(new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					int tableNum = Integer.parseInt(tableField.getText());
+					TablePopup popup = new TablePopup(tourneyList.getTable(tableNum));
+					//Auto returns -1 if closed
+					int result = popup.confirmWinner(frame, tableNum);
+					
+					tourneyList.setTableWinner(tableNum, result);
+					
+				}
+				catch (Exception tableRoundException){
+					tableField.setText("Error");
+				}
+			}
+			
+		});
 		
 		//Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	    //frame.setBounds((int) screenSize.getWidth() - width, 0, width, height);
 	    
 	}
 	
-	public void SetCentre(){
+	public void setCentre(){
 		Point centre = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint();
 		frame.setBounds(centre.x - width/2, centre.y - height/2, width, height);
 	}
