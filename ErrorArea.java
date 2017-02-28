@@ -4,6 +4,10 @@ import javax.swing.JTextField;
 import javax.swing.text.Document;
 
 public class ErrorArea extends JTextField {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8045733078012430694L;
 	PlayerList tourneyList;
 	public ErrorArea() {
 	}

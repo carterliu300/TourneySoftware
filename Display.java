@@ -69,7 +69,7 @@ public class Display extends JFrame {
 		
 
 		//Output area for the table pairings. In East panel
-		OutputArea output = new OutputArea(5, 4*fieldSize, tourneyList);
+		OutputArea output = new OutputArea(5, 6*fieldSize, tourneyList);
 		output.setEditable(false);
 		JScrollPane scrollArea = new JScrollPane(output);
 		frame.add(scrollArea, BorderLayout.EAST);
@@ -205,6 +205,41 @@ public class Display extends JFrame {
 			}
 			
 		});
+		
+		JButton reset = new JButton ("Reset");
+		reset.addActionListener(new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tourneyList.resetAllRounds();
+			}
+			
+		});
+		centrePanel.add(reset);
+		
+		JButton manual = new JButton("Manual");
+		manual.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				String instructions = "Tournament Software by Carter Liu \n"
+						+ "Input first name in text box next to \"First Name\" \n"
+						+ "Input last name in text box next to \"Last Name\" \n"
+						+ "Click the Register button to register the player when both fields"
+						+ " have been filled \n"
+						+ "Delete player by inputting their index first, then clicking the button."
+						+ "\n\n"
+						+ "\"Pair\" will start the tournament. You proceed to the next round "
+						+ "using this very button as well.\n"
+						+ "\"Clear Pair\" is only there for testing purposes. You may encounter "
+						+ "some bugs whilst using this button\n\n"
+						+ "Insert table number, then press \"Table No.\" to set the result for"
+						+ " that table\n"
+						+ "\"Reset\" will clear all pairings and results. This is the button you want"
+						+ " to use if you wish to reset all records\n"
+						+ "As for \"Manual\" ... do I really have to explain?";
+				output.setText(instructions);
+			}
+		});
+		centrePanel.add(manual);
 		
 		//Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	    //frame.setBounds((int) screenSize.getWidth() - width, 0, width, height);

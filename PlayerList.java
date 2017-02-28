@@ -1,6 +1,7 @@
 package tourney;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class PlayerList {
 	int[] pairings;//Stores ID only
@@ -28,6 +29,8 @@ public class PlayerList {
 		tourneyList.add(new Player("Mitchell", "Ling"));
 		tourneyList.add(new Player("Khoi", "Nguyen"));
 		tourneyList.add(new Player("Loli", "Con"));
+		tourneyList.add(new Player("Andy", "Liu"));
+		tourneyList.add(new Player("Alex", "Koreanman"));
 		
 		//*/
 	}
@@ -35,12 +38,13 @@ public class PlayerList {
 	 * Sets the rounds, pairings etc
 	 */
 	public void setRounds(){
+		//First round only
 		int participants = tourneyList.size();
 		int rounds = 0;
 		String tempText = "";
 		
 		if (participants <= 1){
-			output.setText("Not enough participants");
+			displayErrorMessage("Not enough participants");
 		}
 		else if (tablePair == null) {//Which means the pairings have not yet occurred
 			rounds =  (int)Math.ceil((Math.log(participants) / Math.log(2)));
@@ -50,10 +54,9 @@ public class PlayerList {
 			tempText += ".\n";
 			
 			curRound = 1;
-			tempText += "Round " + curRound + "\n";
 			ArrayList<Player> copyList = new ArrayList<Player>(participants);
 			
-			tablePair = new Player[tourneyList.size()/2 + 1][2];//Marker for 2 way weiss
+			tablePair = new Player[(int)Math.ceil(participants/2.0)][2];//Marker for 2 way weiss
 			for (int i = 0; i < tourneyList.size(); i++){
 				//Copy the list for randomisation: first time
 				copyList.add(tourneyList.get(i));
@@ -73,8 +76,7 @@ public class PlayerList {
 				rounds ++;
 			}
 			//Finished random initial pairings
-			tempText += printPairings();
-			output.setText(tempText);
+			displayPairings(tempText);
 		}
 		
 		else {//Participants > 1 and already have tablePairs
@@ -85,7 +87,6 @@ public class PlayerList {
 	protected int getRounds(){
 		return roundNum;
 	}
-	//TODO: Return both player on a table on table no. X
 	/**
 	 * Get the players for a table
 	 * @param tableNum	Table number
@@ -125,20 +126,82 @@ public class PlayerList {
 				temp2.setWin(curRound-1, DRAW);
 				break;
 		}
-		output.setText(printPairings());
+		displayPairings();
 	}
 	/**
 	 * For testing purposes only. Clears current round pairings
 	 */
 	public void clearPairings(){
+		//TODO: May need to reset all variables, or create resetFirstRound()
 		tablePair = null;
+	}
+	/**
+	 * For testing purposes only. Will reset everything but participants.
+	 */
+	public void resetAllRounds(){
+		clearPairings();
+		curRound = 0;
+		roundNum = 0;
+		//TODO: reset participant results as well
+		for (int i = 0; i < dropOuts.size(); i ++){
+			tourneyList.add(dropOuts.get(i));
+		}
+		dropOuts.clear();
+		for (int i = 0; i < tourneyList.size(); i ++){
+			tourneyList.get(i).resetRecord();
+		}
 	}
 	/**
 	 * Sets from round 2 onwards
 	 */
 	private void nextRound(){//Runs only if canProceed returns true.
-		if (canProceed()){
-			System.out.println("CanProceed has been cleared");
+		if (canProceed()){//Everybody has finished their rounds
+			if (curRound == roundNum){
+				tourneyEnd();
+				displayErrorMessage("Tournament Finished");
+				return;
+			}
+			/*
+			 * calculate max points one can get so far
+			 * then randomly put into new list
+			 * then add max point - 1 etc
+			 * then add to new list randomly
+			 * after all has been added,
+			 * pair them up following the new list's order
+			 */
+			int maxPoints = curRound * 2;//Because WIN = 2
+			System.out.println(tourneyList.size() + " max point = " + maxPoints);
+			int participants = tourneyList.size();
+			ArrayList<Player> copyList = new ArrayList<Player>(participants);
+			LinkedList<Player> pairingList = new LinkedList<Player>();
+			Player temp;
+			while (maxPoints >= 0){
+				for (int i = 0; i < participants; i ++){
+					temp = tourneyList.get(i);
+					if (temp.returnPoints(curRound) == maxPoints){
+						copyList.add(temp);
+					}
+				}
+				while(copyList.size() > 0){
+					int random = (int)(Math.random() * copyList.size());
+					pairingList.addLast(copyList.get(random));
+					copyList.remove(random);
+				}
+				maxPoints -= 1;
+			}
+			clearPairings();
+			tablePair = new Player[(int)Math.ceil(participants/2.0)][2];
+			int tempNum = 0;
+			while (pairingList.peek() != null){
+				System.out.println("tempNum = " + tempNum);
+				if (tempNum <= participants/2 + 1){
+					tablePair[tempNum][0] = pairingList.poll();
+					tablePair[tempNum][1] = pairingList.poll();
+				}
+				tempNum++;
+			}
+			curRound++;
+			displayPairings();
 		}
 		else{error.setText("Not everyone has finished their rounds");}
 	}
@@ -156,6 +219,7 @@ public class PlayerList {
 				if(!pairProceed(tablePair[i])){return false;}
 			}
 			tablePair[endIndex][0].setWin(curRound - 1, 2);
+			tablePair[endIndex][0].receivedBye();
 		}
 		
 		else{//i.e., everybody was paired
@@ -175,9 +239,73 @@ public class PlayerList {
 			return (table[0].roundFinished(curRound-1) && table[1].roundFinished(curRound-1));
 		}
 		else {
-			output.setText("Error at pairProceed");
+			displayErrorMessage("Error at pairProceed");
 		}
 		return true;
+	}
+	/**
+	 * Run this to end the tournament.
+	 * Both conditions must be satisfied before running this.
+	 * I.e., max round reached and all players finished
+	 */
+	private void tourneyEnd(){
+		//TODO: End tourney here. Conditions already met
+		int participants = tourneyList.size();
+		ArrayList<Player> copyList = new ArrayList<Player>(participants);
+		ArrayList<Player> finalList = new ArrayList<Player>(participants);
+		copyList = tourneyList;
+		int maxPoints = roundNum * 2;
+		while (maxPoints >= 0){
+			for (int i = 0; i < copyList.size(); i++){
+				if (copyList.get(i).returnPoints(roundNum) == maxPoints){
+					finalList.add(copyList.get(i));
+				}
+			}
+			maxPoints --;
+		}
+//		System.out.println("Final List Size = " + finalList.size()); 
+//		System.out.println(printRankings(finalList));
+		displayMessage(printRankings(finalList));
+	}
+	/**
+	 * Returns a string listing the placement of all the players
+	 * @param list The rankings in proper order
+	 * @return A String
+	 */
+	private String printRankings(ArrayList<Player> list){
+		String tempString = "Rank";
+		System.out.println(tempString + " List: " +list.size());
+		Player temp = null;
+		int rank = 0;
+		//TODO: Sort out bug
+		for (int i = 0; i < list.size(); i ++){
+			tempString +=   i % 5 == 0 ? "\n" : "";
+			temp = list.get(i);
+			tempString += (i + 1);
+			rank = (i % 10) + 1;
+			switch(rank){
+			case 1:
+				tempString += "st";
+				break;
+			case 2:
+				tempString += "nd";
+				break;
+			case 3:
+				tempString += "rd";
+				break;
+			default:
+				tempString += "th";
+				break;
+			}
+			tempString += ")---" + temp.fullName() + " ";
+			for (int j = 0; j < roundNum; j ++){
+				tempString += "[" + temp.roundResult(j) + "]";
+			}
+			tempString += "\n";
+		}
+		
+		System.out.println("Finished loop");
+		return tempString;
 	}
 	/**
 	 * Adds a player
@@ -192,9 +320,16 @@ public class PlayerList {
 		Also need to add what happens if rounds are occurring.
 		//*/
 		Player newEntry = new Player(first, last);
-		tourneyList.add(newEntry);
 		//TODO: Finish what happens to late signups
 		if (inSession()){
+			//We haven't added the player yet. We need to see if it exceeds capacity
+			int participants = tourneyList.size() + 1;
+			if ((int)Math.ceil( Math.log(participants) / Math.log(2) ) > roundNum){
+				error.setText("Adding this player will require more rounds."
+						+ "Either reset pairings or refuse entry. "
+						+ newEntry.fullName() + " has not been added.");
+				return;
+			}
 			newEntry.SetRounds(roundNum);
 			for(int i = 0; i < curRound - 1; i++){
 				newEntry.setWin(i, 0);
@@ -212,8 +347,9 @@ public class PlayerList {
 				newTable[newTable.length -1][0] = newEntry;
 				tablePair = newTable;
 			}
-			output.setText(printPairings());
+			displayPairings();
 		}
+		tourneyList.add(newEntry);
 		//Else do nothing
 	}
 	/**
@@ -232,21 +368,22 @@ public class PlayerList {
 			//Just to double check
 			if (id < tourneyList.size() && id >= 0){
 				try {
+					if (curRound > 0){//I.e., tourney underway
+						dropOuts.add(tourneyList.get(id));
+					}
+					//Remove either way
 					tourneyList.remove(id);
 				}
 				catch (Exception e) {
 					error.setText("Somehow could not delete. Please review code.");
-					//System.out.println("Somehow could not delete. Please review code.");
 				}
 			}
 			else {
 				error.setText("Please input a number within the range of the list.");
-				//System.out.println("Please input a number within the range of the list.");
 			}
 		}
 		else {
 			error.setText("No list yet. Start by registering some.");
-			//System.out.println("No list yet. Start by registering some.");
 		}
 	}
 	
@@ -270,7 +407,7 @@ public class PlayerList {
 	 * @return	A string
 	 */
 	private String printPairings(){
-		String tempText2 = "";
+		String tempText2 = "Round " + curRound;
 		tempText2 += "\nTable\tPlayer\n";
 		for (int i = 0; i < tablePair.length; i ++){
 			if (tablePair[i][0] == null){
@@ -292,6 +429,19 @@ public class PlayerList {
 			}
 		}
 		return tempText2;
+	}
+	//For ease of change in case output has errors
+	private void displayPairings(){
+		output.setText(printPairings());
+	}
+	private void displayPairings(String additionalText){
+		output.setText(additionalText + printPairings());
+	}
+	private void displayMessage(String message){
+		output.setText(message);
+	}
+	private void displayErrorMessage(String message){
+		error.setText(message);
 	}
 	/**
 	 * Set where it will output info

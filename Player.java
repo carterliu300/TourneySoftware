@@ -6,9 +6,9 @@ public class Player {
 	private String firstName;
 	private String lastName;
 	public ArrayList<Integer> winStreak;
-	private int uniqueID;//In case there's a need to use it
+	//private int uniqueID;//In case there's a need to use it
 	private boolean dropout = false;
-	private boolean bye;
+	private boolean bye = false;
 	
 	//Should make something happen if they don't accept proper names
 	public Player(String first, String last){
@@ -78,8 +78,8 @@ public class Player {
 	}
 	/**
 	 * 
-	 * @param curRound	Points they have accumulated until this round
-	 * @return	Current round in code
+	 * @param curRound	Current round in human
+	 * @return	Total win points
 	 */
 	public int returnPoints(int curRound){
 		int tempNum = 0;
@@ -93,6 +93,13 @@ public class Player {
 	 */
 	public void dropOut(){
 		dropout = true;
+	}
+	/**
+	 * 
+	 * @return If this player dropped out or not
+	 */
+	public boolean ifDropout(){
+		return dropout;
 	}
 	/**
 	 * If someone received a bye, use this method
@@ -115,5 +122,10 @@ public class Player {
 		for (int i = 0; i < curRound-1; i++){
 			setWin(i, 0);
 		}
+	}
+	public void resetRecord(){
+		bye = false;
+		dropout = false;
+		winStreak = null;
 	}
 }
