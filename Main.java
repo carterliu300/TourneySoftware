@@ -1,7 +1,12 @@
 package tourney;
 
 //import java.util.Scanner;
-
+/*
+ * Things to implement
+ * Manual Pairing
+ * Check current standings
+ * 
+ */
 public class Main {
 
 	static PlayerList newList = new PlayerList();

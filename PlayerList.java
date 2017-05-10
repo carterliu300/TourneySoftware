@@ -89,23 +89,24 @@ public class PlayerList {
 	}
 	/**
 	 * Get the players for a table
-	 * @param tableNum	Table number
+	 * @param tableNum	Table number in Human
 	 * @return	Player or 2 Players (array)
 	 */
 	protected Player[] getTable(int tableNum){
-		if (tableNum >= 0 && tableNum < tablePair.length){
-			return tablePair[tableNum];
+		if (tableNum > 0 && tableNum <= tablePair.length){
+			return tablePair[tableNum-1];
 		}
 		return null;
 	}
 	/**
 	 * Sets who wins at what table
-	 * @param tableNum	Table Number
+	 * @param tableNum	Table Number in Human
 	 * @param result	1 for p1 win, 2 for p2 win, and 0 for draw
 	 */
 	protected void setTableWinner(int tableNum, int result){
-		Player temp1 = tablePair[tableNum][0];
-		Player temp2 = tablePair[tableNum][1];
+		Player temp1 = tablePair[tableNum-1][0];
+		Player temp2 = tablePair[tableNum-1][1];
+		System.out.println(tablePair.length);
 		switch(result){
 			//Did nothing
 			case -1:
@@ -374,17 +375,11 @@ public class PlayerList {
 					//Remove either way
 					tourneyList.remove(id);
 				}
-				catch (Exception e) {
-					error.setText("Somehow could not delete. Please review code.");
-				}
+				catch (Exception e) {error.setText("Somehow could not delete. Please review code.");}
 			}
-			else {
-				error.setText("Please input a number within the range of the list.");
-			}
+			else {error.setText("Please input a number within the range of the list.");}
 		}
-		else {
-			error.setText("No list yet. Start by registering some.");
-		}
+		else {error.setText("No list yet. Start by registering some.");}
 	}
 	
 	/**
@@ -407,6 +402,10 @@ public class PlayerList {
 	 * @return	A string
 	 */
 	private String printPairings(){
+		if (tablePair == null){
+			return "No pairings made yet";
+		}
+		
 		String tempText2 = "Round " + curRound;
 		tempText2 += "\nTable\tPlayer\n";
 		for (int i = 0; i < tablePair.length; i ++){
@@ -421,7 +420,7 @@ public class PlayerList {
 			else if (tablePair[i][1] != null){//Make sure they're actually paired up
 				Player player1 = tablePair[i][0];
 				Player player2 = tablePair[i][1];
-				tempText2 += i + "-----------" + player1.fullName() + " ["
+				tempText2 += (i + 1) + "-----------" + player1.fullName() + " ["
 						+ player1.roundResult(curRound -1)  + "]\n"
 						+ "\t" + player2.fullName() + " ["
 						+ player2.roundResult(curRound -1)
@@ -431,7 +430,7 @@ public class PlayerList {
 		return tempText2;
 	}
 	//For ease of change in case output has errors
-	private void displayPairings(){
+	public void displayPairings(){
 		output.setText(printPairings());
 	}
 	private void displayPairings(String additionalText){
@@ -464,4 +463,26 @@ public class PlayerList {
 	public boolean inSession(){
 		return (curRound > 0);
 	}
+	/**
+	 * Returns the index of the random player
+	 * @return
+	 */
+	public void randomPlayer(){
+		int participants = tourneyList.size();
+		if (participants == 0) {
+			displayErrorMessage("There's no players");
+		}
+		else if (participants == 1){
+			displayErrorMessage("There's only one player. You really need to random it?");
+		}
+		else if (participants > 1){
+			Player tempPlayer;
+			tempPlayer = tourneyList.get((int)(Math.random() * participants));
+			displayErrorMessage(tempPlayer.fullName() + " is our lucky player!!!");
+		}
+		else {
+			displayErrorMessage("Somehow managed to pass all checks in random");
+		}
+	}
+	
 }

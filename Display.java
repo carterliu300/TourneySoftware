@@ -64,51 +64,41 @@ public class Display extends JFrame {
 		 * threshold is exceeded
 		 */
 		
-		JPanel centrePanel = new JPanel(new GridLayout(0,2));
-		frame.add(centrePanel, BorderLayout.CENTER);
-		
+		//North Panel Additions
+		JTextField errorPanel = new ErrorArea(tourneyList);
+		errorPanel.setEditable(false);
 
-		//Output area for the table pairings. In East panel
-		OutputArea output = new OutputArea(5, 6*fieldSize, tourneyList);
-		output.setEditable(false);
-		JScrollPane scrollArea = new JScrollPane(output);
-		frame.add(scrollArea, BorderLayout.EAST);
+		//East Panel Additions
 		
-		//Output area for the list of participants. In West panel
+		//West Panel Additions
 		JTextArea listOutput = new JTextArea(5, 2*fieldSize);
 		listOutput.setEditable(false);
 		JScrollPane listArea = new JScrollPane(listOutput);
-		frame.add(listArea, BorderLayout.WEST);
 		if (tourneyList.getSize() > 0){
 			listOutput.setText(tourneyList.printStringList());
 		}
 		
 		
-		//Output for errors. In south panel
-		JTextField errorPanel = new ErrorArea(tourneyList);
-		errorPanel.setEditable(false);
-		frame.add(errorPanel, BorderLayout.SOUTH);
+		//South Panel Additions
+		OutputArea output = new OutputArea(10, 6*fieldSize, tourneyList);
+		output.setEditable(false);
+		JScrollPane scrollArea = new JScrollPane(output);
 		
 		
+		
+		//Centre Panel Additions
 		//Add first name input area and title
 		JLabel fName = new JLabel("First Name");
-		centrePanel.add(fName);
 		JTextField fField = new JTextField(fieldSize);
-		centrePanel.add(fField);
 		
 		//Add last name input area and title
 		JLabel lName = new JLabel("Last Name");
-		centrePanel.add(lName);
 		JTextField lField = new JTextField(fieldSize);
-		centrePanel.add(lField);
-		
 
 		
 		JButton register = new JButton("Register Player");
-		centrePanel.add(register);
 		JTextField fullName = new JTextField(fieldSize);
 		fullName.setEditable(false);
-		centrePanel.add(fullName);
 		register.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -138,9 +128,7 @@ public class Display extends JFrame {
 		
 		//TODO: What happens if a player is deleted during matches?
 		JButton delete = new JButton("Delete");
-		centrePanel.add(delete);
 		JTextField indexArea = new JTextField(fieldSize);
-		centrePanel.add(indexArea);
 		delete.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -161,7 +149,6 @@ public class Display extends JFrame {
 		
 		
 		JButton pair = new JButton("Pair");
-		centrePanel.add(pair);
 		pair.addActionListener(new ActionListener(){
 
 			@Override
@@ -174,7 +161,6 @@ public class Display extends JFrame {
 		
 		//Temporary, for testing purposes
 		JButton clearPairing = new JButton("Clear Pair");
-		centrePanel.add(clearPairing);
 		clearPairing.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
 				tourneyList.clearPairings();
@@ -184,8 +170,6 @@ public class Display extends JFrame {
 		
 		JButton table = new JButton("Table No.");
 		JTextField tableField = new JTextField(fieldSize);
-		centrePanel.add(table);
-		centrePanel.add(tableField);
 		table.addActionListener(new ActionListener(){
 
 			@Override
@@ -215,12 +199,13 @@ public class Display extends JFrame {
 			}
 			
 		});
-		centrePanel.add(reset);
 		
 		JButton manual = new JButton("Manual");
 		manual.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
 				String instructions = "Tournament Software by Carter Liu \n"
+						+ "If you paid for this in anyway (other than donations to the author), "
+						+ "you've been ripped off. \n\n"
 						+ "Input first name in text box next to \"First Name\" \n"
 						+ "Input last name in text box next to \"Last Name\" \n"
 						+ "Click the Register button to register the player when both fields"
@@ -239,11 +224,62 @@ public class Display extends JFrame {
 				output.setText(instructions);
 			}
 		});
-		centrePanel.add(manual);
+		
+		JButton random = new JButton("Random");
+		random.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				tourneyList.randomPlayer();
+			}
+		});
+		
+		//TODO: Only use if tournament is underway
+		JButton printPair = new JButton("Show Pair");
+		printPair.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				tourneyList.displayPairings();
+			}
+		});
 		
 		//Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	    //frame.setBounds((int) screenSize.getWidth() - width, 0, width, height);
-	    
+		
+		//Place where you actually add the elements
+		
+		//North
+		
+		//East
+		frame.add(scrollArea, BorderLayout.EAST);
+		
+		//West
+		frame.add(listArea, BorderLayout.WEST);
+		
+		//South
+		frame.add(errorPanel, BorderLayout.SOUTH);
+		
+		//Centre
+		JPanel centrePanel = new JPanel(new GridLayout(0,2));
+		frame.add(centrePanel, BorderLayout.CENTER);
+		//Fist and last names
+		centrePanel.add(fName);
+		centrePanel.add(fField);
+		centrePanel.add(lName);
+		centrePanel.add(lField);
+
+		centrePanel.add(register);
+		centrePanel.add(fullName);
+		centrePanel.add(delete);
+		centrePanel.add(indexArea);
+		centrePanel.add(pair);
+		centrePanel.add(clearPairing);
+		centrePanel.add(table);
+		centrePanel.add(tableField);
+		centrePanel.add(reset);
+		centrePanel.add(manual);
+		centrePanel.add(random);
+		
+		centrePanel.add(printPair);
+		
+		
 	}
 	
 	public void setCentre(){
